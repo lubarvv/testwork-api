@@ -133,4 +133,73 @@ class Logic
 
         self::$response->send();
     }
+
+
+    /**
+     * Добавляет категорию
+     */
+    public static function addCategory()
+    {
+        self::addResponse();
+
+        self::checkAuth();
+
+        if(!isset($_REQUEST['name']) || empty($_REQUEST['name'])) {
+            self::$response->error('Необходимо передать name');
+        }
+
+        if($categoryId = \API\DataAccess\Category::insert(['name' => $_REQUEST['name']])) {
+            self::$response->addField('id', $categoryId);
+        } else {
+            self::$response->error('Не удалось добавить категорию');
+        }
+
+        self::$response->send();
+    }
+
+
+    /**
+     * Добавляет категорию
+     */
+    public static function addProduct()
+    {
+        self::addResponse();
+
+        self::checkAuth();
+
+        if(!isset($_REQUEST['category_id']) || empty($_REQUEST['category_id'])) {
+            self::$response->error('Необходимо передать category_id');
+        }
+
+        if(!$category = \API\DataAccess\Category::getById($_REQUEST['category_id'])) {
+            self::$response->error('Категория не найдена');
+        }
+
+        if(!isset($_REQUEST['name']) || empty($_REQUEST['name'])) {
+            self::$response->error('Необходимо передать name');
+        }
+
+        if(!isset($_REQUEST['description']) || empty($_REQUEST['description'])) {
+            self::$response->error('Необходимо передать description');
+        }
+
+        if(!isset($_REQUEST['cost']) || empty($_REQUEST['cost'])) {
+            self::$response->error('Необходимо передать cost');
+        }
+
+        $data = [
+            'category_id' => $_REQUEST['category_id'],
+            'name' => $_REQUEST['name'],
+            'description' => $_REQUEST['description'],
+            'cost' => $_REQUEST['cost'],
+        ];
+
+        if($productId = \API\DataAccess\Product::insert($data)) {
+            self::$response->addField('id', $productId);
+        } else {
+            self::$response->error('Не удалось добавить товар');
+        }
+
+        self::$response->send();
+    }
 }
