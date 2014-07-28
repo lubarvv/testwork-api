@@ -26,9 +26,26 @@ class Logic
     {
         // TODO: сделать авторизацию
 //        echo 'Need Auth';
-        if(rand(0, 5) === 0) {
-            self::$response->error('Не повезло');
+//        if(rand(0, 5) === 0) {
+//            self::$response->error('Не повезло');
+//        }
+    }
+
+
+    /**
+     * Генерирует токен для доступа к апи
+     * @return string
+     */
+    private static function genToken()
+    {
+        $token = '';
+        $chars = '1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
+
+        for($i = 0; $i<64; $i++) {
+            $token .= $chars[rand(0, strlen($chars) - 1)];
         }
+
+        return $token;
     }
 
 
@@ -159,7 +176,7 @@ class Logic
 
 
     /**
-     * Добавляет категорию
+     * Добавляет товар
      */
     public static function addProduct()
     {
@@ -198,6 +215,79 @@ class Logic
             self::$response->addField('id', $productId);
         } else {
             self::$response->error('Не удалось добавить товар');
+        }
+
+        self::$response->send();
+    }
+
+
+    /**
+     * Добавляет пользователя
+     */
+    public static function addUser()
+    {
+        self::addResponse();
+
+        self::checkAuth();
+
+        if(!isset($_REQUEST['email']) || empty($_REQUEST['email'])) {
+            self::$response->error('Необходимо передать email');
+        }
+
+        if($user = \API\DataAccess\User::getByAttributes(['email' => $_REQUEST['email']])) {
+            self::$response->error('Этот email уже зарегистрирован');
+        }
+
+        if(!isset($_REQUEST['password']) || empty($_REQUEST['password'])) {
+            self::$response->error('Необходимо передать password');
+        }
+
+        $data = [
+            'email' => $_REQUEST['email'],
+            'pass' => md5($_REQUEST['password']),
+        ];
+
+        if($productId = \API\DataAccess\User::insert($data)) {
+            self::$response->addField('id', $productId);
+        } else {
+            self::$response->error('Не удалось добавить пользователя');
+        }
+
+        self::$response->send();
+    }
+
+
+    /**
+     * Возвращет токен для доступа, если email и пароль пользовател были верные
+     */
+    public static function auth()
+    {
+        self::addResponse();
+
+        self::checkAuth();
+
+        if(!isset($_REQUEST['email']) || empty($_REQUEST['email'])) {
+            self::$response->error('Необходимо передать email');
+        }
+
+        if(!isset($_REQUEST['password']) || empty($_REQUEST['password'])) {
+            self::$response->error('Необходимо передать password');
+        }
+
+        $conditions = [
+            'email' => $_REQUEST['email'],
+            'pass' => md5($_REQUEST['password']),
+        ];
+
+        if($user = \API\DataAccess\User::getByAttributes($conditions)) {
+            $token = self::genToken();
+            if(\API\DataAccess\Token::insert(['user_id' => $user->id, 'token' => $token])) {
+                self::$response->addField('token', $token);
+            } else {
+                self::$response->error('Не удалось авторизовать пользователя. Попробуйте позже.');
+            }
+        } else {
+            self::$response->error('Пользователь не найден');
         }
 
         self::$response->send();
