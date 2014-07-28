@@ -24,11 +24,13 @@ class Logic
      */
     private static function checkAuth()
     {
-        // TODO: сделать авторизацию
-//        echo 'Need Auth';
-//        if(rand(0, 5) === 0) {
-//            self::$response->error('Не повезло');
-//        }
+        if(!isset($_REQUEST['token']) || empty($_REQUEST['token'])) {
+            self::$response->error('Необходимо передать token');
+        }
+
+        if(!\API\DataAccess\Token::getByAttributes(['token' => $_REQUEST['token']])) {
+            self::$response->error('Token не действителен');
+        }
     }
 
 
@@ -228,8 +230,6 @@ class Logic
     {
         self::addResponse();
 
-        self::checkAuth();
-
         if(!isset($_REQUEST['email']) || empty($_REQUEST['email'])) {
             self::$response->error('Необходимо передать email');
         }
@@ -263,8 +263,6 @@ class Logic
     public static function auth()
     {
         self::addResponse();
-
-        self::checkAuth();
 
         if(!isset($_REQUEST['email']) || empty($_REQUEST['email'])) {
             self::$response->error('Необходимо передать email');
