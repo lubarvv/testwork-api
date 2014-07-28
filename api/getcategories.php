@@ -2,4 +2,4 @@
 
 require '../autoloader.php';
 
-\API\Logic::getProduct();
+\API\Logic::getCategories();

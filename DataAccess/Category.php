@@ -15,8 +15,5 @@ use \API\Components\DataAccess;
  */
 class Category extends DataAccess
 {
-    public static function test()
-    {
-        echo 'test';
-    }
+
 }
